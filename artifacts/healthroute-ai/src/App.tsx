@@ -15,7 +15,6 @@ import {
   FileText,
   HeartHandshake,
   Hospital,
-  Info,
   MapPin,
   Search,
   ShieldCheck,
@@ -25,9 +24,12 @@ import {
 } from 'lucide-react';
 import { Route, Switch, Link, useLocation, Router as WouterRouter } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { DemoBanner } from '@/components/demo-banner';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import DoctorAppointments from '@/pages/doctor-appointments';
 import NotFound from '@/pages/not-found';
+import { DemoBookingProvider } from '@/lib/demo-bookings';
 
 const queryClient = new QueryClient();
 
@@ -37,15 +39,6 @@ function Logo() {
       <span className="brand-mark"><HeartHandshake size={20} strokeWidth={1.9} /></span>
       <span className="brand-name">healthroute<span>AI</span></span>
     </Link>
-  );
-}
-
-function DemoBanner() {
-  return (
-    <div className="demo-banner" role="note" data-testid="notice-synthetic-data">
-      <Info size={16} />
-      <div><strong>Prototype using synthetic sample data.</strong> This is a demo only—not real patient or hospital information, and not medical advice.</div>
-    </div>
   );
 }
 
@@ -59,13 +52,16 @@ function NavLinks({ mobile = false }: { mobile?: boolean }) {
       <Link href="/hospitals" className={`side-link ${location === '/hospitals' ? 'active' : ''}`} data-testid={mobile ? 'mobile-link-hospitals' : 'link-hospitals'}>
         <Hospital className="side-icon" /><span>Find hospitals</span>
       </Link>
+      <Link href="/doctors" className={`side-link ${location === '/doctors' ? 'active' : ''}`} data-testid={mobile ? 'mobile-link-doctors' : 'link-doctors'}>
+        <CalendarDays className="side-icon" /><span>Find a doctor</span>
+      </Link>
     </nav>
   );
 }
 
 function Shell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
-  const pageName = location === '/hospitals' ? 'Find hospitals' : 'My overview';
+  const pageName = location === '/hospitals' ? 'Find hospitals' : location === '/doctors' ? 'Doctors & appointments' : 'My overview';
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -360,6 +356,7 @@ function Router() {
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/hospitals" component={Hospitals} />
+          <Route path="/doctors" component={DoctorAppointments} />
           <Route component={NotFound} />
         </Switch>
       </Shell>
@@ -376,9 +373,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          <Router />
-        </WouterRouter>
+        <DemoBookingProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+            <Router />
+          </WouterRouter>
+        </DemoBookingProvider>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
