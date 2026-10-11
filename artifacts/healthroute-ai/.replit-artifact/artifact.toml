@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "HealthRoute AI"
+description = "A healthcare coordination prototype for Team Crafty Crew, with a patient dashboard and hospital search using clearly labeled sample data only."
+version = "1.0.0"
+id = "artifacts/healthroute-ai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25698
+
+[services.development]
+run = "pnpm --filter @workspace/healthroute-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/healthroute-ai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/healthroute-ai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25698"
+BASE_PATH = "/"

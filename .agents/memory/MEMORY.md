@@ -1,0 +1,1 @@
+- [HealthRoute AI prototype scope](healthroute-ai-scope.md) — Keep sample healthcare data clearly labeled; do not add paid APIs or external integrations without approval.
