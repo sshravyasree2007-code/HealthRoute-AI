@@ -13,9 +13,11 @@ import {
   Clock3,
   Compass,
   FileText,
+  FlaskConical,
   HeartHandshake,
   Hospital,
   MapPin,
+  Pill,
   Search,
   ShieldCheck,
   SlidersHorizontal,
@@ -28,8 +30,12 @@ import { DemoBanner } from '@/components/demo-banner';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import DoctorAppointments from '@/pages/doctor-appointments';
+import Laboratories from '@/pages/laboratories';
+import Pharmacies from '@/pages/pharmacies';
 import NotFound from '@/pages/not-found';
 import { DemoBookingProvider } from '@/lib/demo-bookings';
+import { DemoLabBookingProvider } from '@/lib/demo-lab-bookings';
+import { DemoPharmacyOrderProvider } from '@/lib/demo-pharmacy-orders';
 
 const queryClient = new QueryClient();
 
@@ -55,13 +61,19 @@ function NavLinks({ mobile = false }: { mobile?: boolean }) {
       <Link href="/doctors" className={`side-link ${location === '/doctors' ? 'active' : ''}`} data-testid={mobile ? 'mobile-link-doctors' : 'link-doctors'}>
         <CalendarDays className="side-icon" /><span>Find a doctor</span>
       </Link>
+      <Link href="/labs" className={`side-link ${location === '/labs' ? 'active' : ''}`} data-testid={mobile ? 'mobile-link-labs' : 'link-labs'}>
+        <FlaskConical className="side-icon" /><span>Find a lab</span>
+      </Link>
+      <Link href="/pharmacies" className={`side-link ${location === '/pharmacies' ? 'active' : ''}`} data-testid={mobile ? 'mobile-link-pharmacies' : 'link-pharmacies'}>
+        <Pill className="side-icon" /><span>Find a pharmacy</span>
+      </Link>
     </nav>
   );
 }
 
 function Shell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
-  const pageName = location === '/hospitals' ? 'Find hospitals' : location === '/doctors' ? 'Doctors & appointments' : 'My overview';
+  const pageName = location === '/hospitals' ? 'Find hospitals' : location === '/doctors' ? 'Doctors & appointments' : location === '/labs' ? 'Find a lab' : location === '/pharmacies' ? 'Find a pharmacy' : 'My overview';
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -357,6 +369,8 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/hospitals" component={Hospitals} />
           <Route path="/doctors" component={DoctorAppointments} />
+          <Route path="/labs" component={Laboratories} />
+          <Route path="/pharmacies" component={Pharmacies} />
           <Route component={NotFound} />
         </Switch>
       </Shell>
@@ -374,9 +388,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <DemoBookingProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-            <Router />
-          </WouterRouter>
+          <DemoLabBookingProvider>
+            <DemoPharmacyOrderProvider>
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+                <Router />
+              </WouterRouter>
+            </DemoPharmacyOrderProvider>
+          </DemoLabBookingProvider>
         </DemoBookingProvider>
         <Toaster />
       </TooltipProvider>
