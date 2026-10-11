@@ -176,22 +176,36 @@ type SampleHospital = {
   services: string[];
   type: string;
   note: string;
+  emergencyBeds: {
+    total: number;
+    available: number;
+    estimatedWaitMinutes: number;
+  };
 };
 
 const sampleHospitals: SampleHospital[] = [
-  { id: 'willow', name: 'Willow Creek Community Hospital', city: 'Northfield', distance: 2.4, services: ['Cardiology', 'Imaging', 'Outpatient care'], type: 'Community hospital', note: 'A fictional community hospital listing with a broad selection of example services.' },
-  { id: 'harbor', name: 'Harborlight Medical Center', city: 'Riverside', distance: 4.8, services: ['Orthopedics', 'Imaging', 'Rehabilitation'], type: 'Medical center', note: 'A fictional medical center entry for exploring directory filters.' },
-  { id: 'cedar', name: 'Cedar & Stone Health Pavilion', city: 'Northfield', distance: 6.1, services: ['Family medicine', 'Outpatient care', 'Rehabilitation'], type: 'Community hospital', note: 'A made-up listing in this sample set; service labels are for interface demonstration only.' },
-  { id: 'meadow', name: 'Meadowline Regional Hospital', city: 'Lakewood', distance: 8.7, services: ['Cardiology', 'Orthopedics', 'Imaging'], type: 'Regional hospital', note: 'A fictional regional hospital entry with sample service categories.' },
-  { id: 'brighton', name: 'Brighton Vale Care Center', city: 'Riverside', distance: 11.3, services: ['Family medicine', 'Rehabilitation', 'Outpatient care'], type: 'Care center', note: 'A fictional care center entry; details do not represent a real facility.' },
-  { id: 'pine', name: 'Pine Terrace Medical House', city: 'Eastbank', distance: 14.2, services: ['Imaging', 'Family medicine'], type: 'Medical center', note: 'An invented listing included to demonstrate local search and filtering.' },
+  { id: 'willow', name: 'Willow Creek Community Hospital', city: 'Northfield', distance: 2.4, services: ['Cardiology', 'Imaging', 'Outpatient care'], type: 'Community hospital', note: 'A fictional community hospital listing with a broad selection of example services.', emergencyBeds: { total: 24, available: 9, estimatedWaitMinutes: 18 } },
+  { id: 'harbor', name: 'Harborlight Medical Center', city: 'Riverside', distance: 4.8, services: ['Orthopedics', 'Imaging', 'Rehabilitation'], type: 'Medical center', note: 'A fictional medical center entry for exploring directory filters.', emergencyBeds: { total: 36, available: 6, estimatedWaitMinutes: 42 } },
+  { id: 'cedar', name: 'Cedar & Stone Health Pavilion', city: 'Northfield', distance: 6.1, services: ['Family medicine', 'Outpatient care', 'Rehabilitation'], type: 'Community hospital', note: 'A made-up listing in this sample set; service labels are for interface demonstration only.', emergencyBeds: { total: 18, available: 0, estimatedWaitMinutes: 78 } },
+  { id: 'meadow', name: 'Meadowline Regional Hospital', city: 'Lakewood', distance: 8.7, services: ['Cardiology', 'Orthopedics', 'Imaging'], type: 'Regional hospital', note: 'A fictional regional hospital entry with sample service categories.', emergencyBeds: { total: 42, available: 17, estimatedWaitMinutes: 12 } },
+  { id: 'brighton', name: 'Brighton Vale Care Center', city: 'Riverside', distance: 11.3, services: ['Family medicine', 'Rehabilitation', 'Outpatient care'], type: 'Care center', note: 'A fictional care center entry; details do not represent a real facility.', emergencyBeds: { total: 20, available: 4, estimatedWaitMinutes: 36 } },
+  { id: 'pine', name: 'Pine Terrace Medical House', city: 'Eastbank', distance: 14.2, services: ['Imaging', 'Family medicine'], type: 'Medical center', note: 'An invented listing included to demonstrate local search and filtering.', emergencyBeds: { total: 16, available: 0, estimatedWaitMinutes: 65 } },
 ];
 
 const serviceOptions = ['Cardiology', 'Family medicine', 'Imaging', 'Orthopedics', 'Outpatient care', 'Rehabilitation'];
+type EmergencyStatus = 'Available' | 'Limited' | 'Full';
+type AvailabilityFilter = 'all' | EmergencyStatus;
+
+function getEmergencyStatus(hospital: SampleHospital): EmergencyStatus {
+  if (hospital.emergencyBeds.available === 0) return 'Full';
+  return hospital.emergencyBeds.available <= Math.ceil(hospital.emergencyBeds.total * 0.25) ? 'Limited' : 'Available';
+}
 
 function HospitalCard({ hospital, index }: { hospital: SampleHospital; index: number }) {
   const [expanded, setExpanded] = useState(false);
   const Icon = index % 2 === 0 ? Hospital : Stethoscope;
+  const emergencyStatus = getEmergencyStatus(hospital);
+  const occupiedBeds = hospital.emergencyBeds.total - hospital.emergencyBeds.available;
   return (
     <article className="panel hospital-card" data-testid={`card-hospital-${hospital.id}`}>
       <div className={`hospital-emblem ${index % 2 ? 'alt' : ''}`}><Icon size={21} strokeWidth={1.8} /></div>
@@ -201,6 +215,21 @@ function HospitalCard({ hospital, index }: { hospital: SampleHospital; index: nu
         <div className="hospital-tags">{hospital.services.map((service) => <span className="hospital-tag" key={service}>{service}</span>)}</div>
       </div>
       <div className="distance">{hospital.distance.toFixed(1)} mi</div>
+      <section className="er-availability" aria-label={`Fictional emergency room availability for ${hospital.name}`} data-testid={`panel-er-availability-${hospital.id}`}>
+        <div className="er-availability-heading">
+          <div>
+            <strong>Emergency room availability</strong>
+            <span>Fictional demo data · not live</span>
+          </div>
+          <span className={`er-status-badge ${emergencyStatus.toLowerCase()}`} data-testid={`status-er-${hospital.id}`}>{emergencyStatus}</span>
+        </div>
+        <div className="er-metrics">
+          <div><strong>{hospital.emergencyBeds.total}</strong><span>Total emergency beds</span></div>
+          <div><strong>{hospital.emergencyBeds.available}</strong><span>Available emergency beds</span></div>
+          <div><strong>{occupiedBeds}</strong><span>Occupied emergency beds</span></div>
+          <div><strong>{hospital.emergencyBeds.estimatedWaitMinutes} min</strong><span>Estimated wait (demo)</span></div>
+        </div>
+      </section>
       <div className="hospital-action">
         <span className="detail-caption">Synthetic sample listing · not a real facility</span>
         <button className="details-button" type="button" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded} data-testid={`button-hospital-details-${hospital.id}`}>
@@ -218,6 +247,7 @@ function Hospitals() {
   const [city, setCity] = useState('all');
   const [radius, setRadius] = useState('any');
   const [services, setServices] = useState<string[]>([]);
+  const [availability, setAvailability] = useState<AvailabilityFilter>('all');
   const [sort, setSort] = useState('distance');
 
   const filtered = useMemo(() => {
@@ -228,10 +258,11 @@ function Hospitals() {
         const cityMatch = city === 'all' || hospital.city === city;
         const radiusMatch = radius === 'any' || hospital.distance <= Number(radius);
         const serviceMatch = services.length === 0 || services.every((service) => hospital.services.includes(service));
-        return textMatch && cityMatch && radiusMatch && serviceMatch;
+        const availabilityMatch = availability === 'all' || getEmergencyStatus(hospital) === availability;
+        return textMatch && cityMatch && radiusMatch && serviceMatch && availabilityMatch;
       })
       .sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name) : a.distance - b.distance);
-  }, [submittedQuery, city, radius, services, sort]);
+  }, [submittedQuery, city, radius, services, availability, sort]);
 
   function toggleService(service: string) {
     setServices((current) => current.includes(service) ? current.filter((item) => item !== service) : [...current, service]);
@@ -242,6 +273,7 @@ function Hospitals() {
     setCity('all');
     setRadius('any');
     setServices([]);
+    setAvailability('all');
     setSort('distance');
   }
   function search(event: FormEvent<HTMLFormElement>) {
@@ -281,6 +313,13 @@ function Hospitals() {
             </select>
           </div>
           <div className="filter-group">
+            <label htmlFor="emergency-availability-filter">Fictional ER availability</label>
+            <select id="emergency-availability-filter" className="filter-select" value={availability} onChange={(event) => setAvailability(event.target.value as AvailabilityFilter)} data-testid="select-er-availability">
+              <option value="all">All demo statuses</option><option value="Available">Available</option><option value="Limited">Limited</option><option value="Full">Full</option>
+            </select>
+            <p className="filter-help">Status uses fictional bed counts only; availability is not live.</p>
+          </div>
+          <div className="filter-group">
             <label>Example services</label>
             <div className="check-list">
               {serviceOptions.map((service) => <label className="check-option" key={service}><input type="checkbox" checked={services.includes(service)} onChange={() => toggleService(service)} data-testid={`checkbox-service-${service.toLowerCase().replaceAll(' ', '-')}`} />{service}</label>)}
@@ -306,7 +345,7 @@ function Hospitals() {
               <button className="reset-search" type="button" onClick={resetFilters} data-testid="button-reset-hospital-search">Reset search and filters</button>
             </div>
           )}
-          <p className="results-disclaimer">All facility names, locations, distances, and service categories shown are synthetic demo examples. This directory is not a source of real facility information or medical guidance.</p>
+          <p className="results-disclaimer">All facility names, locations, distances, service categories, emergency bed counts, and estimated wait times shown are fictional demo examples—not real or live availability, verified facility information, or medical guidance.</p>
         </section>
       </div>
       <div className="footer-note">HealthRoute AI · Team Crafty Crew · Healthcare coordination prototype</div>
